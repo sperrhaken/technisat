@@ -64,11 +64,9 @@ public class DvrDirectory {
 	}
 
 	public DvrDirectory GetSubDirectory(String pcDir) {
-		ListIterator<DvrDirectory> loIt = m_oDirectorys.listIterator();
-		while(loIt.hasNext()) {
-			DvrDirectory loDir = loIt.next();
-			if(loDir.m_cDisplayName.toUpperCase().equals(pcDir.toUpperCase())) {
-				return loDir;
+		for (DvrDirectory d : m_oDirectorys) {
+			if (d.m_cDisplayName.toUpperCase().equals(pcDir.toUpperCase())) {
+				return d;
 			}
 		}
 		return null;
