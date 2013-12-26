@@ -43,7 +43,7 @@ public class DvrDirectory {
 		return null;
 	}
 
-	public boolean DirExist(String pcDir) {
+	public boolean exists(String pcDir) {
 		ListIterator<DvrDirectory> loDirIt = m_oDirectorys.listIterator();
 		while(loDirIt.hasNext()) {
 			if(loDirIt.next().m_cDisplayName.toUpperCase().equals(pcDir.toUpperCase()))
