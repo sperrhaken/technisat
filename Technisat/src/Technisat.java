@@ -383,7 +383,7 @@ public class Technisat {
 			m_oSocket.setReceiveBufferSize((1024*1024)*32);
 			m_oProcessor = new Processor(m_oSocket);
 			Logfile.Write("Connected to "+pcHost);
-			m_cReceiver = m_oProcessor.GetReceiverInfo();
+			m_cReceiver = m_oProcessor.get_receiver_name();
 			return Cd("/");
 		} catch (UnknownHostException e) {
 			Logfile.Write("Unknown Host "+e.getMessage());

@@ -151,7 +151,7 @@ public class Processor {
 		write(s.getBytes());
 	}
 
-	public String GetReceiverInfo() {
+	public String get_receiver_name() {
 		String lcName = "";
 		try {
 			write(Header.PT_GETSYSINFO);
