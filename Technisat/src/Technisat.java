@@ -249,7 +249,7 @@ public class Technisat {
 			return move(pcCommand.substring(5));
 		
 		if(pcCommand.startsWith("rm "))
-			return rn(pcCommand.substring(3));
+			return rm(pcCommand.substring(3));
 		
 		return false;
 	}
@@ -307,7 +307,7 @@ public class Technisat {
 	/*
 	 * Remove Files
 	 */
-	private boolean rn(String pcCommand) {
+	private boolean rm(String pcCommand) {
 		String[] laCommand = new String[] {pcCommand};		
 		DvrDirectory loRmColl = FilterDirParser(laCommand, m_oDirectory);
 		if(loRmColl!=null) {
