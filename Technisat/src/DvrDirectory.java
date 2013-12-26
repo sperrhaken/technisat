@@ -44,10 +44,10 @@ public class DvrDirectory {
 	}
 
 	public boolean exists(String pcDir) {
-		ListIterator<DvrDirectory> loDirIt = m_oDirectorys.listIterator();
-		while(loDirIt.hasNext()) {
-			if(loDirIt.next().m_cDisplayName.toUpperCase().equals(pcDir.toUpperCase()))
+		for (DvrDirectory d : m_oDirectorys) {
+			if (d.m_cDisplayName.toUpperCase().equals(pcDir.toUpperCase())) {
 				return true;
+			}
 		}
 		return false;
 	}
