@@ -4,71 +4,74 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.Socket;
 import java.util.Calendar;
 import java.util.TimeZone;
-import java.util.concurrent.Semaphore;
 
 public class Processor {
-	private InputStream m_oRead;
-	
-	private OutputStream m_oWrite;
-	
-	private Idle m_oIdle;
-	
-	private byte[] m_aSent;
-	
-	private Semaphore m_oSemaphore = new Semaphore(1, true);
-	
-	private int m_nActivePostCopyThreads = 0;
+	private Socket m_connection;
+	private InputStream m_input;
+	private OutputStream m_output;
+	private byte[] m_buffer;
 
-	public Processor(InputStream poRead, OutputStream poWrite) {
-		m_oRead = poRead;
-		m_oWrite = poWrite;
+	
+	public Processor(Socket connection) throws IOException {
+		m_connection = connection;
+		m_input = connection.getInputStream();
+		m_output = connection.getOutputStream();
 		/*
 		 * Thread for Idle Communication
 		 */
-		m_oIdle = new Idle(this);
-		m_oIdle.start();
 	}
    
-    private int _read(
-    	byte[] paBuffer, int pnOffSet, int pnCount
+	/**
+	 * 
+	 * @param buffer to read into
+	 * @param offset the start offset in array b at which the data is written
+	 * @param len the maximum number of bytes to read
+	 * @return number of bytes read
+	 * @throws IOException
+	 */
+    private int read(
+    	byte[] buffer, int offset, int len
     	) throws IOException {
-      int lnReadPos = 0, lnBytes = 0, lnReadTimeout= 0 ;
+
+      final int MAXRETRIES = 60;
+      int bytesReadSofar = 0, bytesRead = 0;
+      int retries= 0;
       do{
-    	  /*
-    	   * read data from the socket while the readed byte
-    	   * count is lower than pnMinBytes
-    	   */
     	  try {
-    		  lnBytes = m_oRead.read(paBuffer, pnOffSet+lnReadPos, pnCount-lnReadPos );
-        	  if(lnBytes>=0)
-        		  lnReadPos+=lnBytes;
+    		  bytesRead = m_input.read(buffer, offset+bytesReadSofar, len-bytesReadSofar );
+        	  if(bytesRead>=0) {
+        		  bytesReadSofar+=bytesRead;
+        	  }
         	  else
-        		  throw new IOException("Socket IO Exception "+lnBytes+ "("+lnReadPos+" of " + pnCount + " bytes readed, No Data)");    		  
+        		  throw new IOException("Socket IO Exception " +
+        				  bytesRead + "(" + bytesReadSofar + " of " +
+        				  len + " bytes read, No Data)");    		  
     	  }
     	  catch(IOException e) {
-    		  lnReadTimeout++;
-    		  if(lnReadTimeout>60)
+    		  retries++;
+    		  if(retries>=MAXRETRIES)
     			  throw e;
     	  }
-      } while(pnCount>lnReadPos);
-      Logfile.Data("RxD", paBuffer, lnReadPos);
-      return lnReadPos;
+      } while(len>bytesReadSofar);
+
+      Logfile.Data("RxD", buffer, bytesReadSofar);
+      return bytesReadSofar;
     }
     
-    private boolean readack() throws IOException {
+    private boolean readack() throws IOException {    	
     	byte[] laBuffer = new byte[1];
-    	if(_read(laBuffer, 0, 1)>0) {
+    	if(read(laBuffer, 0, 1)>0) {
     		switch(laBuffer[0]) {
-    		case 1:
+    		case 1: // OK
     			return true;
-    		case -4:
+    		case -4: // DISK_BUSY
     			Logfile.Write("Disk is Busy (Record/Replay in Progress)");
     			/*
     			 * Busy Loop
@@ -80,34 +83,34 @@ public class Processor {
 					e.printStackTrace();
 				}    			
     			return readack();
-    		case -7:
+    		case -7: // DISK_STARTING_UP
     			Logfile.Write("Disk is staring up...");
     			return readack();
     		}
     	}
 		return false;
     }
-    
-    private byte readbyte() throws IOException {
-    	byte[] laBuffer = new byte[1];
-    	int lnBytes = _read(laBuffer, 0, 1);
-    	if(lnBytes>0)
-    		return laBuffer[0];
-    	throw new IOException("No Data");
-    }
-    
-    private void readbyte(byte[] paData) throws IOException {    	
-    	readbyte(paData, 0, paData.length);
+      
+    private int read(byte[] paData) throws IOException {    	
+    	return read(paData, 0, paData.length);
     }
     
 
 	private int readbyte(byte[] paBuffer, int pnOffSet, int pnCount) throws IOException {
-		return _read(paBuffer, pnOffSet, pnCount);
-	}    
+		return read(paBuffer, pnOffSet, pnCount);
+	}
+	
+    private byte readbyte() throws IOException {
+    	byte[] laBuffer = new byte[1];
+    	if(read(laBuffer, 0, 1) > 0)
+    		return laBuffer[0];
+    	else
+    		throw new IOException("No Data");
+    }
  
     private short readshort() throws IOException {
     	byte[] laShort = new byte[2];
-    	int lnBytes = _read(laShort, 0, 2);
+    	int lnBytes = read(laShort, 0, 2);
     	if(lnBytes==2) {
     		return (new DataInputStream((new ByteArrayInputStream(laShort)))).readShort();
     	}
@@ -116,7 +119,7 @@ public class Processor {
 
     private int readint() throws IOException {
     	byte[] laShort = new byte[4];
-    	int lnBytes = _read(laShort, 0, 4);
+    	int lnBytes = read(laShort, 0, 4);
     	if(lnBytes==4) {
     		return (new DataInputStream((new ByteArrayInputStream(laShort)))).readInt();
     	}
@@ -125,7 +128,7 @@ public class Processor {
     
     private long readlong() throws IOException {
     	byte[] laShort = new byte[8];
-    	int lnBytes = _read(laShort, 0, 8);
+    	int lnBytes = read(laShort, 0, 8);
     	if(lnBytes==8) {
     		return (new DataInputStream((new ByteArrayInputStream(laShort)))).readLong();
     	}
@@ -135,8 +138,8 @@ public class Processor {
     private void write(byte[] paData) {
     	try {
     		Logfile.Data("TxD", paData, paData.length);
-    		m_aSent = paData;
-   			m_oWrite.write(paData);
+    		m_buffer = paData;
+   			m_output.write(paData);
 		} catch (IOException e) {
 			System.out.println("Write Failed");
 		} 
@@ -144,8 +147,8 @@ public class Processor {
 	
 	private void rewrite() {
     	try {
-    		Logfile.Data("TxD", m_aSent, m_aSent.length);
-   			m_oWrite.write(m_aSent);
+    		Logfile.Data("TxD", m_buffer, m_buffer.length);
+   			m_output.write(m_buffer);
 		} catch (IOException e) {
 			System.out.println("Write Failed");
 		}		
@@ -162,22 +165,19 @@ public class Processor {
 	}
 
 	public String GetReceiverInfo() {
-		Lock();
 		String lcName = "";
 		String lcLang = "";
 		write(Header.PT_GETSYSINFO);
 		try {
 			byte[] laFlags = new byte[5];
-			readbyte(laFlags);
+			read(laFlags);
 			byte[] laLang = new byte[3];
-			readbyte(laLang);
+			read(laLang);
 			lcName = readstring();
 			ack();
 		} catch (IOException e) {
 			e.printStackTrace();
-		} finally {
-			Unlock();
-		}		
+		}
 		return lcName;
 	}
 	
@@ -186,10 +186,8 @@ public class Processor {
 		return readack();
 	}
 	
-	private boolean ack() {
-		byte[] laBuffer = new byte[] { Header.PT_ACK };
-		write(laBuffer);
-		return true;
+	private void ack() {
+		write(new byte[] { Header.PT_ACK });
 	}
 	
 	private String readstring() throws IOException {
@@ -197,7 +195,7 @@ public class Processor {
 		if(lnFieldLen>0) {
 			byte[] laField = new byte[lnFieldLen & 0xff];
 			int lnStartPos = 0;
-			readbyte(laField);		
+			read(laField);		
 			switch(laField[0]) {
 			case 0x05:
 			case 0x0b:
@@ -212,14 +210,13 @@ public class Processor {
 	
 	private void readskip(int i) throws IOException {
 		byte[] laSkip = new byte[i];
-		readbyte(laSkip);
+		read(laSkip);
 	}	
 	
 	public void OpenDir(DvrDirectory poDir) {
 		if(poDir.m_bIsOpen)
 			return;
 
-		Lock();
 		try {		
 			Calendar loCalendar = Calendar.getInstance(TimeZone.getTimeZone("GMT"));			
 			byte[] laGetDir = new byte[] //Command
@@ -283,8 +280,6 @@ public class Processor {
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
-		} finally {
-			Unlock();
 		}
 		poDir.m_bIsOpen=true;
 	}
@@ -300,31 +295,8 @@ public class Processor {
 		if(pcDstFile.endsWith("/")) {
 			pcDstFile = pcDstFile + poFile.getUniqueFileName();
 		}
-		String lcPostCopyAction = Props.Get("POSTCOPYSCRIPT");
-		int lnPostCopyThreads = Integer.parseInt(Props.Get("POSTCOPYTHREADCOUNT"));
-		boolean lbStartDownload = false;
-		boolean lbPostCopyAction = false;
 		boolean lbReturn = false;
-		
-		if(lcPostCopyAction.equals("")) {
-			Lock();
-		} else {
-			lbPostCopyAction=true;
-			do {
-				Lock();
-				if(m_nActivePostCopyThreads<lnPostCopyThreads) {
-					m_nActivePostCopyThreads++;
-					lbStartDownload=true;
-				} else {
-					Unlock();
-					try {
-						Thread.sleep(1000);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-				}
-			} while(!lbStartDownload);
-		}
+
 		/*
 		 * Socket Streams
 		 */
@@ -343,38 +315,32 @@ public class Processor {
 				write(poFile.getFileName().getBytes("CP1252"));
 				readbyte();
 				laDstFiles = new String[] {pcDstFile};
-				readstream_singlepart(createdstfile(pcDstFile));
+				readstream_singlepart(getDstBufferedFileStream(pcDstFile));
 			} else {			
 				loSocketWrite.writeByte(Header.PT_GETFILE_BYRECNO); //Download Command;
 				loSocketWrite.writeShort(poFile.getIndex()); //File Index		
 				loSocketWrite.writeLong(0); //Start Position (maybe!!)
 				write(loSocketWriteLow.toByteArray()); // Send Message to DVR
 							
-				byte lbResponse = readbyte();
-				long lnFileSize = readlong();
+				readbyte(); // response
+				readlong(); // file size
 				byte lbFileCount = readbyte();								
 				BufferedOutputStream[] laWrite = new BufferedOutputStream[lbFileCount];
 				laDstFiles = new String[lbFileCount];
 				for(int i=0; i<laWrite.length; i++) {
 					byte lbFileNo = readbyte();
 					laDstFiles[i] = pcDstFile+"."+readstring().toLowerCase();
-					laWrite[lbFileNo] = createdstfile(laDstFiles[i]);
+					laWrite[lbFileNo] = getDstBufferedFileStream(laDstFiles[i]);
 				}				
 				write(Header.PT_ACK);
 				readstream_multipart(laWrite);
 			}
 			Logfile.Write("Transfer Complete");
-			if(lbPostCopyAction) {
-				PostCopy loPostCopy = new PostCopy(lcPostCopyAction, poFile, laDstFiles[0], this);
-				loPostCopy.start();
-			}
 			lbReturn = true;
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (Exception e) {
 			e.printStackTrace();
-		} finally {
-			Unlock();
 		}
 		return lbReturn;
 	}
@@ -440,17 +406,15 @@ public class Processor {
 			paWrite[i].close();
 	}
 	
-	private BufferedOutputStream createdstfile(String pcDstFile) throws IOException {
-		File loTsFile = new File(pcDstFile);
-		if(loTsFile.exists()) {
+	private BufferedOutputStream getDstBufferedFileStream(String path) throws IOException {
+		File dstFile = new File(path);
+		if(dstFile.exists()) {
 			if(Props.Get("SAFEITY").equals("1")) {
-				Logfile.Write("Error File "+pcDstFile+" already exists!");
-				throw new IOException("Error File "+pcDstFile+" already exists!");
+				Logfile.Write("Error File " + path + " already exists!");
+				throw new IOException("Error File " + path + " already exists!");
 			}
 		}
-		FileOutputStream loFileWriter = new FileOutputStream(pcDstFile);
-		BufferedOutputStream loFastFileWriter = new BufferedOutputStream(loFileWriter);
-		return loFastFileWriter;
+		return new BufferedOutputStream(new FileOutputStream(path));
 	}
 	
 	private boolean resumeread(byte pbFlag) throws InterruptedException, IOException {
@@ -473,137 +437,41 @@ public class Processor {
 	 * Remove a File from the Receiver FS
 	 */
 	public boolean Rm(DvrFile poFile) throws Exception {
+		byte response;
+		
 		if(!poFile.isRecNo()) {
 			System.out.println("File has no unique Record Number (Not implemented)");
 			return false;
 		}
-			
-		Lock();
+
 		Logfile.Write("Removing File " + poFile);
-		boolean lbOk = false;
-		ByteArrayOutputStream loLowLevelCommand = new ByteArrayOutputStream();
-		DataOutputStream loCommand = new DataOutputStream(loLowLevelCommand);
-		byte lbResponse = 0;
+		ByteArrayOutputStream command = new ByteArrayOutputStream();
+		DataOutputStream commandDataStream = new DataOutputStream(command);
 		try {
-			loCommand.writeByte(0x17);
-			loCommand.writeShort(poFile.getRecNo());
-			write(loLowLevelCommand.toByteArray());
-			lbResponse = readbyte();
-			if(lbResponse==1) {
-				lbOk = true;
+			commandDataStream.writeByte(0x17);
+			commandDataStream.writeShort(poFile.getRecNo());
+			write(command.toByteArray());
+			response = readbyte();
+			if(response == 1) {
 				poFile.m_oParent.m_oFiles.remove(poFile);
+				return true;
 			}
 			else
-				System.out.println("Error in Receiver Response (RM Command) " + lbResponse);
+				System.out.println("Error in Receiver Response (RM Command) " + response);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		Unlock();
-		return lbOk;
+		return false;
 	}
 
-	private void Lock() {
+	/**
+	 * Collects all the threads and closes the used socket.
+	*/
+	public void close() {
 		try {
-			m_oSemaphore.acquire();
-		} catch (InterruptedException e) {
-			System.out.println("Semaphore Failed!");
+			m_connection.close();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
-	}
-	
-	private void Unlock() {
-		m_oSemaphore.release();
-	}
-
-	private void Idle() throws IOException {
-		write(Header.PT_ACK);
-		readack();
-	}
-
-	public int GetActiveThreadCount() {
-		Lock();
-		Logfile.Write("Active Threads "+m_nActivePostCopyThreads);
-		int lnReturn = m_nActivePostCopyThreads;
-		Unlock();
-		return lnReturn;
-	}
-	
-
-	public void Quit() {
-		Lock();
 	}		
-	
-	private class Idle extends Thread {
-		public Idle(Processor poProcessor) {
-			m_oProcessor = poProcessor;
-		}
-		public void run() {		
-			while(true) {
-				/*
-				 * Processor Lock
-				 */
-				m_oProcessor.Lock();
-				boolean lbTempDisTransLog = Props.TestProp("TRANSPORTLOG", "1");
-				if(lbTempDisTransLog)
-					Props.Set("TRANSPORTLOG", "0");
-				try {
-					m_oProcessor.Idle();
-				} catch (IOException e1) {
-					e1.printStackTrace();
-				}
-				if(lbTempDisTransLog)
-					Props.Set("TRANSPORTLOG", "1");			
-				/*
-				 * Processor Unlock
-				 */
-				m_oProcessor.Unlock();
-				try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-			}
-		}	
-		Processor m_oProcessor;
-	}
-	
-	private class PostCopy extends Thread {
-		String m_cCommand;
-		DvrFile m_oFile;
-		Processor m_oProcessor;
-		String m_cDstFile;
-		
-		public PostCopy(String pcCommand, DvrFile poFile,String pcDstFile, Processor poProcessor) {
-			m_cCommand=pcCommand;
-			m_oFile=poFile;
-			m_oProcessor=poProcessor;
-			m_cDstFile=pcDstFile;
-		}
-		
-		public void run() {
-			try {
-				Runtime loRt = Runtime.getRuntime();
-				String[] lcCommand = new String[] {
-					m_cCommand,
-					m_cDstFile,
-					String.valueOf(m_oFile.getIndex())
-				};
-				
-				//Logfile.Write("Execute: "+lcCommand);
-				Process loProc = loRt.exec(lcCommand);
-				
-				try {
-					int lnExitCode = loProc.waitFor();
-					m_oProcessor.Lock();
-					Logfile.Write("PostCopyScript exited with Exit Code "+lnExitCode);					
-					m_oProcessor.m_nActivePostCopyThreads--;
-					m_oProcessor.Unlock();
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			
-		}
-	}
 }

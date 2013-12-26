@@ -1,22 +1,14 @@
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
-import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.PrintStream;
-import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.net.*;
 import java.util.ListIterator;
 import java.util.Map;
-import java.util.Properties;
-import java.util.Vector;
 import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -282,7 +274,7 @@ public class Technisat {
 			}
 		}
 		Logfile.Write("Invalid. Usage SET [VAR]=[VALUE]");
-		return true;
+		return false;
 	}
 	
 	private boolean SetList() {
@@ -290,6 +282,7 @@ public class Technisat {
 		return true;
 	}
 
+	@SuppressWarnings("unused")
 	private boolean Clear() {
 		String ESC = "\033[";
 		System.out.print(ESC + "2J"); System.out.flush();		 
@@ -372,38 +365,23 @@ public class Technisat {
 
 	private boolean Quit() {
 		if(m_oProcessor!=null) {
-			boolean lbWait=true;
-			do {
-				try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-				lbWait = m_oProcessor.GetActiveThreadCount()>0;		
-			} while(lbWait);
-			m_oProcessor.Quit();
-			try {
-				m_oSocket.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+			m_oProcessor.close();
 		}
 		System.exit(0);
 		return true;
 	}
 
 	private boolean Connect(String pcHost) {
+		
 		if(m_oProcessor!=null)
-			m_oProcessor.Quit();
+			m_oProcessor.close();
 		
 		try {
 			Logfile.Write("Connecting "+pcHost);			
 			m_oSocket = new Socket(pcHost, 2376);
 			m_oSocket.setSoTimeout(1000);
 			m_oSocket.setReceiveBufferSize((1024*1024)*32);
-			m_oRead = m_oSocket.getInputStream();
-			m_oWrite = m_oSocket.getOutputStream();
-			m_oProcessor = new Processor(m_oRead, m_oWrite);
+			m_oProcessor = new Processor(m_oSocket);
 			Logfile.Write("Connected to "+pcHost);
 			m_cReceiver = m_oProcessor.GetReceiverInfo();
 			return Cd("/");
@@ -453,10 +431,6 @@ public class Technisat {
 		}
 		return false;
 	}
-
-	InputStream m_oRead = null;
-	
-	OutputStream m_oWrite = null;
 	
 	Socket m_oSocket = null;
 	
