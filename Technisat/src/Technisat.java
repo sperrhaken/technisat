@@ -49,11 +49,7 @@ public class Technisat {
 		loTech.Shell(loStartScript);
 	}
 	
-	public void Ls(DvrDirectory poDir) {
-		poDir.PrintTo(System.out);
-	}
-	
-	public boolean Cd(String pcDir) throws IOException {
+	public boolean cd(String pcDir) throws IOException {
 		if(IsConnected()) {
 			if(pcDir.equals("/")) {
 				if(m_oRootDirectory==null)
@@ -244,7 +240,7 @@ public class Technisat {
 			return ls(pcCommand.substring(3));
 
 		if(pcCommand.startsWith("cd "))
-			return Cd(pcCommand.substring(3));
+			return cd(pcCommand.substring(3));
 		
 		if(pcCommand.startsWith("cp "))
 			return cp(pcCommand.substring(3));
@@ -359,7 +355,7 @@ public class Technisat {
 		String[] laCommand = new String[] {pcCommand};		
 		DvrDirectory loFileColl = FilterDirParser(laCommand, m_oDirectory);
 		if(loFileColl!=null)
-			Ls(loFileColl);
+			loFileColl.PrintTo(System.out);
 		return true;
 	}
 
@@ -384,7 +380,7 @@ public class Technisat {
 			m_oProcessor = new Processor(m_oSocket);
 			Logfile.Write("Connected to "+pcHost);
 			m_cReceiver = m_oProcessor.get_receiver_name();
-			return Cd("/");
+			return cd("/");
 		} catch (UnknownHostException e) {
 			Logfile.Write("Unknown Host "+e.getMessage());
 		} catch (IOException e) {
