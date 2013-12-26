@@ -100,7 +100,7 @@ public class Technisat {
 				try {
 					lcLine = loShell.readLine();
 					while(lcLine!=null) {
-						if(!Execute(lcLine))
+						if(!execute(lcLine))
 							Logfile.Write("Invalid Command: "+lcLine);
 						lcLine = loShell.readLine();
 					}
@@ -140,7 +140,7 @@ public class Technisat {
 			
 			try {
 				lcCommand = loShell.readLine();
-				if(!Execute(lcCommand))
+				if(!execute(lcCommand))
 					Logfile.Write("Invalid Command: "+lcCommand);
 			} catch (IOException e) {
 				System.out.println("Error");
@@ -205,7 +205,7 @@ public class Technisat {
 		return loFilterDir;
 	}
 	
-	private boolean Execute(String pcCommand) throws IOException {
+	private boolean execute(String pcCommand) throws IOException {
 		
 		if(pcCommand.trim().equals(""))
 			return true;
@@ -214,10 +214,10 @@ public class Technisat {
 			return true;
 		
 		if(pcCommand.startsWith("connect "))
-			return Connect(pcCommand.substring(8));		
+			return connect(pcCommand.substring(8));		
 		
 		if(pcCommand.equals("help"))
-			return Help();
+			return usage();
 		
 		if(pcCommand.startsWith("set "))
 			return Set(pcCommand.substring(4));
@@ -230,7 +230,7 @@ public class Technisat {
 		*/
 		
 		if(pcCommand.equals("quit") || pcCommand.equals("exit"))
-			return Quit();
+			return quit();
 		
 		if(!IsConnected()) {
 			Logfile.Write("You must Connect a Receiver with the Connect Command");
@@ -238,22 +238,22 @@ public class Technisat {
 		}
 		
 		if(pcCommand.equals("ls"))
-			return Ls("{*}");
+			return ls("{*}");
 		
 		if(pcCommand.startsWith("ls "))
-			return Ls(pcCommand.substring(3));
+			return ls(pcCommand.substring(3));
 
 		if(pcCommand.startsWith("cd "))
 			return Cd(pcCommand.substring(3));
 		
 		if(pcCommand.startsWith("cp "))
-			return Cp(pcCommand.substring(3));
+			return cp(pcCommand.substring(3));
 		
 		if(pcCommand.startsWith("arch "))
-			return Arch(pcCommand.substring(5));
+			return move(pcCommand.substring(5));
 		
 		if(pcCommand.startsWith("rm "))
-			return Rm(pcCommand.substring(3));
+			return rn(pcCommand.substring(3));
 		
 		return false;
 	}
@@ -289,7 +289,7 @@ public class Technisat {
 		return true;
 	}
 
-	private boolean Help() {
+	private boolean usage() {
 		System.out.println("Commad List");
 		System.out.println("");
 		System.out.println("help");
@@ -311,7 +311,7 @@ public class Technisat {
 	/*
 	 * Remove Files
 	 */
-	private boolean Rm(String pcCommand) {
+	private boolean rn(String pcCommand) {
 		String[] laCommand = new String[] {pcCommand};		
 		DvrDirectory loRmColl = FilterDirParser(laCommand, m_oDirectory);
 		if(loRmColl!=null) {
@@ -332,7 +332,7 @@ public class Technisat {
 	/*
 	 * Copy and Remove Files
 	 */
-	private boolean Arch(String pcCommand) {
+	private boolean move(String pcCommand) {
 		String[] laCommand = new String[] {pcCommand};		
 		DvrDirectory loFileColl = FilterDirParser(laCommand, m_oDirectory);
 		if(loFileColl!=null) {
@@ -355,7 +355,7 @@ public class Technisat {
 		return false;
 	}
 
-	private boolean Ls(String pcCommand) {
+	private boolean ls(String pcCommand) {
 		String[] laCommand = new String[] {pcCommand};		
 		DvrDirectory loFileColl = FilterDirParser(laCommand, m_oDirectory);
 		if(loFileColl!=null)
@@ -363,7 +363,7 @@ public class Technisat {
 		return true;
 	}
 
-	private boolean Quit() {
+	private boolean quit() {
 		if(m_oProcessor!=null) {
 			m_oProcessor.close();
 		}
@@ -371,7 +371,7 @@ public class Technisat {
 		return true;
 	}
 
-	private boolean Connect(String pcHost) {
+	private boolean connect(String pcHost) {
 		
 		if(m_oProcessor!=null)
 			m_oProcessor.close();
@@ -408,7 +408,7 @@ public class Technisat {
 		return null;
 	}
 	
-	private boolean Cp(String pcCommand) {
+	private boolean cp(String pcCommand) {
 		String[] laCommand = new String[] {pcCommand};		
 		DvrDirectory loFileColl = FilterDirParser(laCommand, m_oDirectory);
 		if(loFileColl!=null) {
