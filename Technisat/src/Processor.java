@@ -449,7 +449,7 @@ public class Processor {
 	}
 
 	/**
-	 * Collects all the threads and closes the used socket.
+	 * Closes the used socket.
 	*/
 	public void close() {
 		try {

@@ -1,5 +1,3 @@
-import java.io.DataOutputStream;
-import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.ListIterator;
 import java.util.Vector;
@@ -13,7 +11,8 @@ public class DvrDirectory {
 	public DvrDirectory m_oParent;
 	public boolean m_bIsOpen = false;
 	
-	public DvrDirectory(DvrDirectory poParent, String pcRemoteName, String pcDisplayName, String pcDescription) {
+	public DvrDirectory(DvrDirectory poParent, String pcRemoteName,
+			String pcDisplayName, String pcDescription) {
 		m_oParent = poParent;
 		m_cDisplayName = pcDisplayName;
 		m_cRemoteName = pcRemoteName;
@@ -37,12 +36,9 @@ public class DvrDirectory {
 	}
 	
 	public DvrFile GetFileByRecNo(int pnRecNo) {
-		ListIterator<DvrFile> loFileIt = m_oFiles.listIterator();
-		while(loFileIt.hasNext()) {
-			DvrFile loTest = loFileIt.next();
-			if(loTest.getIndex()==pnRecNo) {
-				return loTest;
-			}
+		for (DvrFile f : m_oFiles) {
+			if (f.getIndex() == pnRecNo)
+				return f;
 		}
 		return null;
 	}
