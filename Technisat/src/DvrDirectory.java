@@ -44,12 +44,10 @@ public class DvrDirectory {
 	}
 
 	public boolean is_dir(String pcDir) {
-		for (DvrDirectory d : m_oDirectorys) {
-			if (d.m_cDisplayName.toUpperCase().equals(pcDir.toUpperCase())) {
-				return true;
-			}
-		}
-		return false;
+		if (GetSubDirectory(pcDir) != null)
+			return true;
+		else
+			return false;
 	}
 
 	public void PrintTo(PrintStream poWrite) {		
