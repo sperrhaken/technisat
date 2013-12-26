@@ -60,7 +60,7 @@ public class Technisat {
 					m_oRootDirectory = new DvrDirectory(null, "", "", "");
 				m_oDirectory = m_oRootDirectory;
 			} else {
-				if(m_oDirectory.exists(pcDir)) {
+				if(m_oDirectory.is_dir(pcDir)) {
 					if(pcDir.equals(".."))
 						m_oDirectory = m_oDirectory.m_oParent;
 					else

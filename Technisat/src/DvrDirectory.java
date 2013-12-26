@@ -43,7 +43,7 @@ public class DvrDirectory {
 		return null;
 	}
 
-	public boolean exists(String pcDir) {
+	public boolean is_dir(String pcDir) {
 		for (DvrDirectory d : m_oDirectorys) {
 			if (d.m_cDisplayName.toUpperCase().equals(pcDir.toUpperCase())) {
 				return true;
