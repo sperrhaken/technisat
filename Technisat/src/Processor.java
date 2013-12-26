@@ -11,12 +11,13 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.util.Calendar;
 import java.util.TimeZone;
+import java.util.concurrent.TimeUnit;
 
 public class Processor {
 	private Socket m_connection;
 	private InputStream m_input;
 	private OutputStream m_output;
-	private byte[] m_buffer;
+	private byte[] m_rewriteBuffer;
 
 	
 	public Processor(Socket connection) throws IOException {
@@ -56,49 +57,20 @@ public class Processor {
     	  }
     	  catch(IOException e) {
     		  retries++;
-    		  if(retries>=MAXRETRIES)
+    		  if(retries >= MAXRETRIES)
     			  throw e;
     	  }
-      } while(len>bytesReadSofar);
+      } while(len > bytesReadSofar);
 
       Logfile.Data("RxD", buffer, bytesReadSofar);
       return bytesReadSofar;
     }
-    
-    private boolean readack() throws IOException {    	
-    	byte[] laBuffer = new byte[1];
-    	if(read(laBuffer, 0, 1)>0) {
-    		switch(laBuffer[0]) {
-    		case 1: // OK
-    			return true;
-    		case -4: // DISK_BUSY
-    			Logfile.Write("Disk is Busy (Record/Replay in Progress)");
-    			/*
-    			 * Busy Loop
-    			 */
-    			try {
-					Thread.sleep(1000);
-					rewrite();
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}    			
-    			return readack();
-    		case -7: // DISK_STARTING_UP
-    			Logfile.Write("Disk is staring up...");
-    			return readack();
-    		}
-    	}
-		return false;
-    }
+
       
     private int read(byte[] paData) throws IOException {    	
     	return read(paData, 0, paData.length);
     }
-    
 
-	private int readbyte(byte[] paBuffer, int pnOffSet, int pnCount) throws IOException {
-		return read(paBuffer, pnOffSet, pnCount);
-	}
 	
     private byte readbyte() throws IOException {
     	byte[] laBuffer = new byte[1];
@@ -107,11 +79,36 @@ public class Processor {
     	else
     		throw new IOException("No Data");
     }
- 
+
+
+    private boolean readack() throws IOException {    	
+    	byte[] buffer = new byte[1];
+    	while (read(buffer, 0, 1) > 0) {
+    		switch(buffer[0]) {
+    		case 1: // OK
+    			return true;
+    		case -4: // DISK_BUSY
+    			Logfile.Write("Disk is Busy (Record/Replay in Progress)");
+				rewrite();
+    			break;
+    		case -7: // DISK_STARTING_UP
+    			Logfile.Write("Disk is starting up...");
+    			break;
+    		}
+    		try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+    	}
+		return false;
+    }
+    
+
     private short readshort() throws IOException {
     	byte[] laShort = new byte[2];
     	int lnBytes = read(laShort, 0, 2);
-    	if(lnBytes==2) {
+    	if(lnBytes == 2) {
     		return (new DataInputStream((new ByteArrayInputStream(laShort)))).readShort();
     	}
     	throw new IOException("No Short Value");
@@ -138,7 +135,7 @@ public class Processor {
     private void write(byte[] paData) {
     	try {
     		Logfile.Data("TxD", paData, paData.length);
-    		m_buffer = paData;
+    		m_rewriteBuffer = paData;
    			m_output.write(paData);
 		} catch (IOException e) {
 			System.out.println("Write Failed");
@@ -147,8 +144,8 @@ public class Processor {
 	
 	private void rewrite() {
     	try {
-    		Logfile.Data("TxD", m_buffer, m_buffer.length);
-   			m_output.write(m_buffer);
+    		Logfile.Data("TxD", m_rewriteBuffer, m_rewriteBuffer.length);
+   			m_output.write(m_rewriteBuffer);
 		} catch (IOException e) {
 			System.out.println("Write Failed");
 		}		
@@ -368,13 +365,13 @@ public class Processor {
 			if(lbRead>=0) {
 				readskip(3);			
 				lnReadSize = lnFileSize - lnBytes > lnChunkSize ? lnChunkSize : lnFileSize - lnBytes;			
-				readbyte(laBuffer,0,lnReadSize);
+				read(laBuffer,0,lnReadSize);
 				poWrite.write(laBuffer,0,lnReadSize);
 				lnBytes+=lnChunkSize;
 			} else
 				resumeread(lbRead);
 		} while(lnBytes<lnFileSize);		
-		readbyte(laBuffer,0,lnChunkSize-lnReadSize);
+		read(laBuffer,0,lnChunkSize-lnReadSize);
 		poWrite.close();
 	}
 	/**
@@ -397,7 +394,7 @@ public class Processor {
 			if(lbFileNo>=0) {
 				lnChunkSize = readint();
 				readskip(3);
-				lnRead = readbyte(laBuffer, 0, lnChunkSize);
+				lnRead = read(laBuffer, 0, lnChunkSize);
 				paWrite[lbFileNo].write(laBuffer,0,lnRead);
 			}
 		} while(resumeread(lbFileNo));
