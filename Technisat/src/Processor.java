@@ -132,44 +132,31 @@ public class Processor {
     	throw new IOException("No Short Value");
     }    
     
-    private void write(byte[] paData) {
-    	try {
-    		Logfile.Data("TxD", paData, paData.length);
-    		m_rewriteBuffer = paData;
-   			m_output.write(paData);
-		} catch (IOException e) {
-			System.out.println("Write Failed");
-		} 
+    private void write(byte[] paData) throws IOException {
+    	Logfile.Data("TxD", paData, paData.length);
+    	m_rewriteBuffer = paData;
+   		m_output.write(paData);
 	}
 	
-	private void rewrite() {
-    	try {
-    		Logfile.Data("TxD", m_rewriteBuffer, m_rewriteBuffer.length);
-   			m_output.write(m_rewriteBuffer);
-		} catch (IOException e) {
-			System.out.println("Write Failed");
-		}		
+	private void rewrite() throws IOException {
+    	Logfile.Data("TxD", m_rewriteBuffer, m_rewriteBuffer.length);
+   		write(m_rewriteBuffer);
 	}
 	
-	private void write(byte pByte) {
-		byte[] laBytes = new byte[1];
-		laBytes[0] = pByte;
-		write(laBytes);
+	private void write(byte b) throws IOException {
+		write(new byte[]{b});
 	}
 	
-	private void write(String pcValue) {
-		write(pcValue.getBytes());
+	private void write(String s) throws IOException {
+		write(s.getBytes());
 	}
 
 	public String GetReceiverInfo() {
 		String lcName = "";
-		String lcLang = "";
-		write(Header.PT_GETSYSINFO);
 		try {
-			byte[] laFlags = new byte[5];
-			read(laFlags);
-			byte[] laLang = new byte[3];
-			read(laLang);
+			write(Header.PT_GETSYSINFO);
+			read(new byte[5]); // flags
+			read(new byte[3]); // lang
 			lcName = readstring();
 			ack();
 		} catch (IOException e) {
@@ -183,7 +170,7 @@ public class Processor {
 		return readack();
 	}
 	
-	private void ack() {
+	private void ack() throws IOException {
 		write(new byte[] { Header.PT_ACK });
 	}
 	
