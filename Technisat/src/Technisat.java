@@ -18,7 +18,7 @@ public class Technisat {
 	/**
 	 * @param args
 	 */		
-	private String m_cReceiver = "";
+	private String receiverName = "";
 
 	private DvrDirectory m_oDirectory = null;
 	
@@ -65,7 +65,7 @@ public class Technisat {
 					System.out.println("Unknown Directory "+pcDir);
 				}
 			}
-			m_oProcessor.OpenDir(m_oDirectory);			
+			worker.OpenDir(m_oDirectory);			
 		}
 		return true;
 	}
@@ -129,10 +129,10 @@ public class Technisat {
 		
 		while(lbReadCommand) {
 			String lcPath = m_oDirectory == null ? "" : " " + m_oDirectory.GetFullPath();
-			if(m_cReceiver.equals(""))
+			if(receiverName.equals(""))
 				System.out.print("Technisat"+lcPath+"> ");
 			else
-				System.out.print(m_cReceiver+lcPath+"> ");
+				System.out.print(receiverName+lcPath+"> ");
 			
 			try {
 				lcCommand = loShell.readLine();
@@ -315,7 +315,7 @@ public class Technisat {
 			while(loFileIter.hasNext()) {
 				DvrFile loFile = loFileIter.next();
 				try {
-					m_oProcessor.Rm(loFile);
+					worker.Rm(loFile);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -336,9 +336,9 @@ public class Technisat {
 				ListIterator<DvrFile> loFileIter = loFileColl.m_oFiles.listIterator();
 				while(loFileIter.hasNext()) {
 					DvrFile loFile = loFileIter.next();
-					if(m_oProcessor.Download(loFile,laCommand[0])) {
+					if(worker.Download(loFile,laCommand[0])) {
 						try {
-							m_oProcessor.Rm(loFile);							
+							worker.Rm(loFile);							
 						} catch (Exception e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
@@ -360,8 +360,8 @@ public class Technisat {
 	}
 
 	private boolean quit() {
-		if(m_oProcessor!=null) {
-			m_oProcessor.close();
+		if(worker!=null) {
+			worker.close();
 		}
 		System.exit(0);
 		return true;
@@ -369,17 +369,17 @@ public class Technisat {
 
 	private boolean connect(String pcHost) {
 		
-		if(m_oProcessor!=null)
-			m_oProcessor.close();
+		if(worker!=null)
+			worker.close();
 		
 		try {
 			Logfile.Write("Connecting "+pcHost);			
-			m_oSocket = new Socket(pcHost, 2376);
-			m_oSocket.setSoTimeout(1000);
-			m_oSocket.setReceiveBufferSize((1024*1024)*32);
-			m_oProcessor = new Processor(m_oSocket);
+			connection = new Socket(pcHost, 2376);
+			connection.setSoTimeout(1000);
+			connection.setReceiveBufferSize((1024*1024)*32);
+			worker = new TechnisatWorker(connection);
 			Logfile.Write("Connected to "+pcHost);
-			m_cReceiver = m_oProcessor.get_receiver_name();
+			receiverName = worker.get_receiver_name();
 			return cd("/");
 		} catch (UnknownHostException e) {
 			Logfile.Write("Unknown Host "+e.getMessage());
@@ -412,7 +412,7 @@ public class Technisat {
 				ListIterator<DvrFile> loFileIter = loFileColl.m_oFiles.listIterator();
 				while(loFileIter.hasNext()) {
 					DvrFile loFile = loFileIter.next();
-					if(!m_oProcessor.Download(loFile,laCommand[0]))
+					if(!worker.Download(loFile,laCommand[0]))
 						System.out.println("Download Failed");
 				}
 				return true;
@@ -422,13 +422,13 @@ public class Technisat {
 	}
 	
 	private boolean IsConnected() {
-		if(m_oProcessor!=null) {
+		if(worker!=null) {
 			return true;
 		}
 		return false;
 	}
 	
-	Socket m_oSocket = null;
+	Socket connection = null;
 	
-	Processor m_oProcessor = null;
+	TechnisatWorker worker = null;
 }
