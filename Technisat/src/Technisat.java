@@ -315,7 +315,7 @@ public class Technisat {
 			while(loFileIter.hasNext()) {
 				DvrFile loFile = loFileIter.next();
 				try {
-					worker.Rm(loFile);
+					worker.rm(loFile);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -337,8 +337,8 @@ public class Technisat {
 				while(loFileIter.hasNext()) {
 					DvrFile loFile = loFileIter.next();
 					try {
-						worker.Download(loFile,laCommand[0]);
-						worker.Rm(loFile);
+						worker.download(loFile,laCommand[0]);
+						worker.rm(loFile);
 					}
 					catch (IOException e) {
 						System.out.println("Downloading failed");
@@ -415,7 +415,7 @@ public class Technisat {
 				while(loFileIter.hasNext()) {
 					DvrFile loFile = loFileIter.next();
 					try {
-						worker.Download(loFile,laCommand[0]);
+						worker.download(loFile,laCommand[0]);
 					}
 					catch (IOException e) {
 						System.out.println("Download failed");
