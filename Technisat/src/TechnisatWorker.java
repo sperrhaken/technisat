@@ -13,14 +13,14 @@ import java.util.Calendar;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
-public class Processor {
+public class TechnisatWorker {
 	private Socket m_connection;
 	private InputStream m_input;
 	private OutputStream m_output;
 	private byte[] m_rewriteBuffer;
 
 	
-	public Processor(Socket connection) throws IOException {
+	public TechnisatWorker(Socket connection) throws IOException {
 		m_connection = connection;
 		m_input = connection.getInputStream();
 		m_output = connection.getOutputStream();
@@ -268,65 +268,70 @@ public class Processor {
 		poDir.m_bIsOpen=true;
 	}
 	
-	/*
-	 * Download a File from the Reciever to the
-	 * Destination File specified in pcDstFile
-	 */	
-	public boolean Download(DvrFile poFile, String pcDstFile) {
-		/*
-		 * Parameter Checks
-		 */
-		if(pcDstFile.endsWith("/")) {
-			pcDstFile = pcDstFile + poFile.getUniqueFileName();
-		}
-		boolean lbReturn = false;
-
-		/*
-		 * Socket Streams
-		 */
+	// TODO
+	public void download_by_recno(DvrFile poFile, String dst) throws IOException {
 		ByteArrayOutputStream loSocketWriteLow = new ByteArrayOutputStream();
 		DataOutputStream loSocketWrite = new DataOutputStream(loSocketWriteLow);
 		String laDstFiles[];
+		
+		loSocketWrite.writeByte(Header.PT_GETFILE_BYRECNO); //Download Command;
+		loSocketWrite.writeShort(poFile.getIndex()); //File Index		
+		loSocketWrite.writeLong(0); //Start Position (maybe!!)
+		write(loSocketWriteLow.toByteArray()); // Send Message to DVR
+
+		readbyte(); // response
+		readlong(); // file size
+		byte lbFileCount = readbyte();								
+		BufferedOutputStream[] laWrite = new BufferedOutputStream[lbFileCount];
+		laDstFiles = new String[lbFileCount];
+		for(int i=0; i<laWrite.length; i++) {
+			byte lbFileNo = readbyte();
+			laDstFiles[i] = dst + "."+readstring().toLowerCase();
+			laWrite[lbFileNo] = getDstBufferedFileStream(laDstFiles[i]);
+		}				
+		write(Header.PT_ACK);
+		readstream_multipart(laWrite);
+	}
+	
+	public void download_by_name(DvrFile poFile, String dst) throws IOException {
+		write(new byte[] {Header.PT_GETFILE_BYNAME,0,1,0,0,0,0,0,0,0,0} );
+		readbyte();
+		write(poFile.m_oParent.m_cRemoteName.getBytes("CP1252"));
+		readbyte();
+		ping();
+		write(poFile.getFileName().getBytes("CP1252"));
+		readbyte();
+		readstream_singlepart(getDstBufferedFileStream(dst));
+	}
+	
+	/**
+	 * Copys `poFile' to the destination pcDstFile. If pcDstFile is a
+	 * directory files are copied into it.
+	 * 
+	 * @param poFile DvrFile to copy
+	 * @param pcDstFile Destination to copy to
+	 * @throws IOException
+	 */
+	public void Download(DvrFile poFile, String pcDstFile)
+			throws IOException {
+		// TODO handle windows directory separator
+		if(pcDstFile.endsWith("/")) {
+			pcDstFile = pcDstFile + poFile.getUniqueFileName();
+		}
+
 		try {
 			Logfile.Write("Copy File " + poFile.getFileName() + " to "+pcDstFile);
 			
 			if(poFile.m_nType==1) {
-				write(new byte[] {Header.PT_GETFILE_BYNAME,0,1,0,0,0,0,0,0,0,0} );
-				readbyte();
-				write(poFile.m_oParent.m_cRemoteName.getBytes("CP1252"));
-				readbyte();
-				ping();
-				write(poFile.getFileName().getBytes("CP1252"));
-				readbyte();
-				laDstFiles = new String[] {pcDstFile};
-				readstream_singlepart(getDstBufferedFileStream(pcDstFile));
+				download_by_name(poFile, pcDstFile);
 			} else {			
-				loSocketWrite.writeByte(Header.PT_GETFILE_BYRECNO); //Download Command;
-				loSocketWrite.writeShort(poFile.getIndex()); //File Index		
-				loSocketWrite.writeLong(0); //Start Position (maybe!!)
-				write(loSocketWriteLow.toByteArray()); // Send Message to DVR
-							
-				readbyte(); // response
-				readlong(); // file size
-				byte lbFileCount = readbyte();								
-				BufferedOutputStream[] laWrite = new BufferedOutputStream[lbFileCount];
-				laDstFiles = new String[lbFileCount];
-				for(int i=0; i<laWrite.length; i++) {
-					byte lbFileNo = readbyte();
-					laDstFiles[i] = pcDstFile+"."+readstring().toLowerCase();
-					laWrite[lbFileNo] = getDstBufferedFileStream(laDstFiles[i]);
-				}				
-				write(Header.PT_ACK);
-				readstream_multipart(laWrite);
+				download_by_recno(poFile, pcDstFile);
 			}
 			Logfile.Write("Transfer Complete");
-			lbReturn = true;
 		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (Exception e) {
-			e.printStackTrace();
+			Logfile.Write("Transfer failed");
+			throw e;
 		}
-		return lbReturn;
 	}
 	
 	/**

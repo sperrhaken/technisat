@@ -336,13 +336,15 @@ public class Technisat {
 				ListIterator<DvrFile> loFileIter = loFileColl.m_oFiles.listIterator();
 				while(loFileIter.hasNext()) {
 					DvrFile loFile = loFileIter.next();
-					if(worker.Download(loFile,laCommand[0])) {
-						try {
-							worker.Rm(loFile);							
-						} catch (Exception e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}						
+					try {
+						worker.Download(loFile,laCommand[0]);
+						worker.Rm(loFile);
+					}
+					catch (IOException e) {
+						System.out.println("Downloading failed");
+					}
+					catch (Exception e) {
+						System.out.println("Failed to remove the file on the receiver.");
 					}
 				}
 				return true;
@@ -412,8 +414,12 @@ public class Technisat {
 				ListIterator<DvrFile> loFileIter = loFileColl.m_oFiles.listIterator();
 				while(loFileIter.hasNext()) {
 					DvrFile loFile = loFileIter.next();
-					if(!worker.Download(loFile,laCommand[0]))
-						System.out.println("Download Failed");
+					try {
+						worker.Download(loFile,laCommand[0]);
+					}
+					catch (IOException e) {
+						System.out.println("Download failed");
+					}
 				}
 				return true;
 			}
