@@ -422,35 +422,31 @@ public class TechnisatWorker {
 		return true;
 	}
 
-	/*
+	/**
 	 * Remove a File from the Receiver FS
 	 */
-	public boolean rm(DvrFile poFile) throws Exception {
+	public void rm(DvrFile poFile) 
+			throws TechnisatException, IOException {
 		byte response;
 		
 		if(!poFile.isRecNo()) {
-			System.out.println("File has no unique Record Number (Not implemented)");
-			return false;
+			throw new TechnisatException("File has no unique Record Number (Not implemented)");
 		}
 
 		Logfile.Write("Removing File " + poFile);
 		ByteArrayOutputStream command = new ByteArrayOutputStream();
 		DataOutputStream commandDataStream = new DataOutputStream(command);
-		try {
-			commandDataStream.writeByte(Header.PT_RMFILE_BYRECNO);
-			commandDataStream.writeShort(poFile.getRecNo());
-			write(command.toByteArray());
-			response = readbyte();
-			if(response == 1) {
-				poFile.m_oParent.m_oFiles.remove(poFile);
-				return true;
-			}
-			else
-				System.out.println("Error in Receiver Response (RM Command) " + response);
-		} catch (IOException e) {
-			e.printStackTrace();
+
+		commandDataStream.writeByte(Header.PT_RMFILE_BYRECNO);
+		commandDataStream.writeShort(poFile.getRecNo());
+		write(command.toByteArray());
+		response = readbyte();
+		if(response == 1) {
+			poFile.m_oParent.m_oFiles.remove(poFile);
 		}
-		return false;
+		else {
+			throw new TechnisatException("Error in Receiver Response (RM Command) " + response);
+		}
 	}
 
 	/**

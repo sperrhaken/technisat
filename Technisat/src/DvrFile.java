@@ -58,9 +58,9 @@ public class DvrFile {
 		lcFileName = loForm.format(m_dDate) + " " + lcFileName;
 		return lcFileName;
 	}
-	public short getRecNo() throws Exception {
+	public short getRecNo() throws TechnisatException {
 		if(m_nIndex<0)
-			throw new Exception("File has no Record Number");
+			throw new TechnisatException("File has no Record Number");
 		return m_nIndex;
 	}
 	public boolean isRecNo() {
