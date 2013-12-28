@@ -312,7 +312,7 @@ public class TechnisatWorker {
 	 * @param pcDstFile Destination to copy to
 	 * @throws IOException
 	 */
-	public void Download(DvrFile poFile, String pcDstFile)
+	public void download(DvrFile poFile, String pcDstFile)
 			throws IOException {
 		// TODO handle windows directory separator
 		if(pcDstFile.endsWith("/")) {
