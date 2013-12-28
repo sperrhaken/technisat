@@ -293,7 +293,7 @@ public class TechnisatWorker {
 		readstream_multipart(laWrite);
 	}
 	
-	public void download_by_name(DvrFile poFile, String dst) throws IOException {
+	public void download_by_name(DvrFile poFile, String dst)throws IOException {
 		write(new byte[] {Header.PT_GETFILE_BYNAME,0,1,0,0,0,0,0,0,0,0} );
 		readbyte();
 		write(poFile.m_oParent.m_cRemoteName.getBytes("CP1252"));
@@ -425,7 +425,7 @@ public class TechnisatWorker {
 	/*
 	 * Remove a File from the Receiver FS
 	 */
-	public boolean Rm(DvrFile poFile) throws Exception {
+	public boolean rm(DvrFile poFile) throws Exception {
 		byte response;
 		
 		if(!poFile.isRecNo()) {
@@ -437,7 +437,7 @@ public class TechnisatWorker {
 		ByteArrayOutputStream command = new ByteArrayOutputStream();
 		DataOutputStream commandDataStream = new DataOutputStream(command);
 		try {
-			commandDataStream.writeByte(0x17);
+			commandDataStream.writeByte(Header.PT_RMFILE_BYRECNO);
 			commandDataStream.writeShort(poFile.getRecNo());
 			write(command.toByteArray());
 			response = readbyte();
