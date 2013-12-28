@@ -338,7 +338,7 @@ public class Processor {
 	 */	
 	private void readstream_singlepart(
 			BufferedOutputStream poWrite
-			) throws IOException, InterruptedException {
+			) throws IOException {
 		int lnChunkSize = 0, lnBytes = 0;
 		byte[] laBuffer = null;
 		byte lbRead = 0;		
@@ -370,7 +370,7 @@ public class Processor {
 	 */
 	private void readstream_multipart(
 			BufferedOutputStream[] paWrite
-			) throws IOException, InterruptedException
+			) throws IOException
 	{
 		byte lbFileNo = 0;
 		int lnChunkSize = 0;
@@ -401,7 +401,7 @@ public class Processor {
 		return new BufferedOutputStream(new FileOutputStream(path));
 	}
 	
-	private boolean resumeread(byte pbFlag) throws InterruptedException, IOException {
+	private boolean resumeread(byte pbFlag) throws IOException {
 		if(pbFlag>=0)
 			return true;
 		switch(pbFlag) {
