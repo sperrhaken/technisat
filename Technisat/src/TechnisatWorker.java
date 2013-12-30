@@ -11,7 +11,6 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.util.Calendar;
 import java.util.TimeZone;
-import java.util.concurrent.TimeUnit;
 
 public class TechnisatWorker {
 	private Socket m_connection;
