@@ -225,10 +225,9 @@ public class TechnisatWorker {
 			while(lnAnzElements>0) {
 				loCalendar.set(1999, 12, 01, 00, 00, 00);
 				byte lbType = readbyte();
-				byte lbIsDir = 0;
 				switch(lbType) {
 				case 0: //Directory
-					lbIsDir = readbyte();
+					readbyte(); // not used, was stored in a variable called lbIsDir
 					lcFileName = readstring();
 					poDir.m_oDirectorys.add(new DvrDirectory(poDir, lcFileName, lcFileName, null));
 					break;
@@ -242,7 +241,7 @@ public class TechnisatWorker {
 				case 3: //TS Radio
 				case 4: //TS File Record SD Quality
 				case 7: //TS File Record HD Quality
-					lbIsDir = readbyte();
+					readbyte(); // not used, was stored in a variable called lbIsDir
 					lnIndex = readbyte();
 					lcFileName = readstring();
 					lnSize = readlong();
@@ -251,7 +250,7 @@ public class TechnisatWorker {
 					poDir.m_oFiles.add( new DvrFile(poDir, lcFileName, lnSize, lnIndex, lbType, loCalendar.getTime()));
 					break;
 				case 9: //USB Memory Stick
-					lbIsDir = readbyte();
+					readbyte(); // not used, was stored in a variable called lbIsDir
 					String lcDescription = readstring();
 					String lcName = readstring();
 					poDir.m_oDirectorys.add(new DvrDirectory(poDir, lcName, lcName.substring(1), lcDescription));
