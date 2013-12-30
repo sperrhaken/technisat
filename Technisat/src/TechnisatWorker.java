@@ -345,7 +345,7 @@ public class TechnisatWorker {
 		int lnChunkSize = 0, lnBytes = 0;
 		byte[] laBuffer = null;
 		byte lbRead = 0;		
-		int lnUnknown = readint();
+		readint(); // Unknown purpose
 		int lnFileSize = readint();
 		int lnReadSize = 0;
 		lnChunkSize = readint();
