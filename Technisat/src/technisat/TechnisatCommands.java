@@ -1,3 +1,5 @@
+package technisat;
+
 public class TechnisatCommands {
 	public static final byte PT_ACK 			= 0x01;	
 	
