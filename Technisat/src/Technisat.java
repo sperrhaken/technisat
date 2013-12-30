@@ -356,8 +356,14 @@ public class Technisat {
 	private boolean ls(String pcCommand) {
 		String[] laCommand = new String[] {pcCommand};		
 		DvrDirectory loFileColl = FilterDirParser(laCommand, m_oDirectory);
-		if(loFileColl!=null)
-			loFileColl.PrintTo(System.out);
+		if(loFileColl!=null) {
+			for (DvrDirectory d : loFileColl.m_oDirectorys) {
+				System.out.println("<DIRECTORY> " + d);
+			}
+			for (DvrFile f : loFileColl.m_oFiles) {
+				System.out.println(f);
+			}
+		}
 		return true;
 	}
 

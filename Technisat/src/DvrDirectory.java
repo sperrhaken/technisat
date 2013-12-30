@@ -50,17 +50,6 @@ public class DvrDirectory {
 			return false;
 	}
 
-	public void PrintTo(PrintStream poWrite) {		
-		ListIterator<DvrDirectory> loIt = m_oDirectorys.listIterator();
-		while(loIt.hasNext()) {
-			poWrite.println("<DIRECTORY> "+loIt.next());
-		}
-		ListIterator<DvrFile> loFileIt = m_oFiles.listIterator();
-		while(loFileIt.hasNext()) {
-			poWrite.println(loFileIt.next());
-		}		
-	}
-
 	public DvrDirectory GetSubDirectory(String pcDir) {
 		for (DvrDirectory d : m_oDirectorys) {
 			if (d.m_cDisplayName.toUpperCase().equals(pcDir.toUpperCase())) {
