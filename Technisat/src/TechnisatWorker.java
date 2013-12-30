@@ -12,6 +12,8 @@ import java.net.Socket;
 import java.util.Calendar;
 import java.util.TimeZone;
 
+import static technisat.TechnisatResponses.*;
+
 public class TechnisatWorker {
 	private Socket m_connection;
 	private InputStream m_input;
@@ -226,21 +228,21 @@ public class TechnisatWorker {
 				loCalendar.set(1999, 12, 01, 00, 00, 00);
 				byte lbType = readbyte();
 				switch(lbType) {
-				case 0: //Directory
+				case DIR:
 					readbyte(); // not used, was stored in a variable called lbIsDir
 					lcFileName = readstring();
 					poDir.m_oDirectorys.add(new DvrDirectory(poDir, lcFileName, lcFileName, null));
 					break;
-				case 1: //Binary
+				case BIN:
 					lcFileName = readstring();
 					lnSize = readlong();
 					lnTimeStamp = readint();
 					loCalendar.add(Calendar.SECOND, lnTimeStamp);
 					poDir.m_oFiles.add( new DvrFile(poDir, lcFileName, lnSize, (short)-1, lbType, loCalendar.getTime()));
 					break;
-				case 3: //TS Radio
-				case 4: //TS File Record SD Quality
-				case 7: //TS File Record HD Quality
+				case TS_RADIO:
+				case TS_RECORD_SD:
+				case TS_RECORD_HD:
 					readbyte(); // not used, was stored in a variable called lbIsDir
 					lnIndex = readbyte();
 					lcFileName = readstring();
@@ -249,7 +251,7 @@ public class TechnisatWorker {
 					loCalendar.add(Calendar.SECOND, lnTimeStamp);
 					poDir.m_oFiles.add( new DvrFile(poDir, lcFileName, lnSize, lnIndex, lbType, loCalendar.getTime()));
 					break;
-				case 9: //USB Memory Stick
+				case USB_STICK:
 					readbyte(); // not used, was stored in a variable called lbIsDir
 					String lcDescription = readstring();
 					String lcName = readstring();
