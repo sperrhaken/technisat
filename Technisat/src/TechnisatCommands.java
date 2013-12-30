@@ -1,4 +1,4 @@
-public class Header {
+public class TechnisatCommands {
 	public static final byte PT_ACK 			= 0x01;	
 	
 	public static final byte PT_GETSYSINFO 		= 0x02;	

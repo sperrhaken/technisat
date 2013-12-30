@@ -153,7 +153,7 @@ public class TechnisatWorker {
 	public String get_receiver_name() {
 		String lcName = "";
 		try {
-			write(Header.PT_GETSYSINFO);
+			write(TechnisatCommands.PT_GETSYSINFO);
 			read(new byte[5]); // flags
 			read(new byte[3]); // lang
 			lcName = readstring();
@@ -170,7 +170,7 @@ public class TechnisatWorker {
 	}
 	
 	private void ack() throws IOException {
-		write(new byte[] { Header.PT_ACK });
+		write(new byte[] { TechnisatCommands.PT_ACK });
 	}
 	
 	private String readstring() throws IOException {
@@ -204,7 +204,7 @@ public class TechnisatWorker {
 			Calendar loCalendar = Calendar.getInstance(TimeZone.getTimeZone("GMT"));			
 			byte[] laGetDir = new byte[] //Command
 				{
-					Header.PT_GETDIR,
+					TechnisatCommands.PT_GETDIR,
 					0,
 					(byte) (poDir.m_oParent==null ? 0 : 1)
 				};
@@ -272,7 +272,7 @@ public class TechnisatWorker {
 		DataOutputStream loSocketWrite = new DataOutputStream(loSocketWriteLow);
 		String laDstFiles[];
 		
-		loSocketWrite.writeByte(Header.PT_GETFILE_BYRECNO); //Download Command;
+		loSocketWrite.writeByte(TechnisatCommands.PT_GETFILE_BYRECNO); //Download Command;
 		loSocketWrite.writeShort(poFile.getIndex()); //File Index		
 		loSocketWrite.writeLong(0); //Start Position (maybe!!)
 		write(loSocketWriteLow.toByteArray()); // Send Message to DVR
@@ -287,12 +287,12 @@ public class TechnisatWorker {
 			laDstFiles[i] = dst + "."+readstring().toLowerCase();
 			laWrite[lbFileNo] = getDstBufferedFileStream(laDstFiles[i]);
 		}				
-		write(Header.PT_ACK);
+		write(TechnisatCommands.PT_ACK);
 		readstream_multipart(laWrite);
 	}
 	
 	public void download_by_name(DvrFile poFile, String dst)throws IOException {
-		write(new byte[] {Header.PT_GETFILE_BYNAME,0,1,0,0,0,0,0,0,0,0} );
+		write(new byte[] {TechnisatCommands.PT_GETFILE_BYNAME,0,1,0,0,0,0,0,0,0,0} );
 		readbyte();
 		write(poFile.m_oParent.m_cRemoteName.getBytes("CP1252"));
 		readbyte();
@@ -435,7 +435,7 @@ public class TechnisatWorker {
 		ByteArrayOutputStream command = new ByteArrayOutputStream();
 		DataOutputStream commandDataStream = new DataOutputStream(command);
 
-		commandDataStream.writeByte(Header.PT_RMFILE_BYRECNO);
+		commandDataStream.writeByte(TechnisatCommands.PT_RMFILE_BYRECNO);
 		commandDataStream.writeShort(poFile.getRecNo());
 		write(command.toByteArray());
 		response = readbyte();
