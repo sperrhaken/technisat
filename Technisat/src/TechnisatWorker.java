@@ -87,13 +87,13 @@ public class TechnisatWorker {
     	byte[] buffer = new byte[1];
     	while (read(buffer, 0, 1) > 0) {
     		switch(buffer[0]) {
-    		case 1: // OK
+    		case OK:
     			return true;
-    		case -4: // DISK_BUSY
+    		case DISK_BUSY:
     			Logfile.Write("Disk is Busy (Record/Replay in Progress)");
 				rewrite();
     			break;
-    		case -7: // DISK_STARTING_UP
+    		case DISK_STARTING_UP:
     			Logfile.Write("Disk is starting up...");
     			break;
     		}
