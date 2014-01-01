@@ -1,6 +1,8 @@
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import static technisat.TechnisatResponses.*;
+
 public class DvrFile {	
 	public DvrFile(DvrDirectory poParent, String pcFileName, long pnFileSize, short pnIndex, byte pbType, Date pdDate) {
 		m_cFileName = pcFileName;
@@ -21,11 +23,11 @@ public class DvrFile {
 	}
 	public String getTypeString() {
 		switch(m_nType) {
-		case 1:
+		case BIN:
 			return "BIN  ";
-		case 4:
+		case TS_RECORD_SD:
 			return "TS/SD";
-		case 7:
+		case TS_RECORD_HD:
 			return "TS/HD";
 		}
 		return "     ";
