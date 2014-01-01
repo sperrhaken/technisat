@@ -430,7 +430,7 @@ public class TechnisatWorker {
 			throws TechnisatException, IOException {
 		byte response;
 		
-		if(!poFile.isRecNo()) {
+		if(!poFile.hasRecNo()) {
 			throw new TechnisatException("File has no unique Record Number (Not implemented)");
 		}
 

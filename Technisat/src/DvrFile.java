@@ -68,7 +68,7 @@ public class DvrFile {
 		return m_nIndex;
 	}
 
-	public boolean isRecNo() {
+	public boolean hasRecNo() {
 		return m_nIndex>0;
 	}
 
