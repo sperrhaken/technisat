@@ -11,4 +11,6 @@ public class TechnisatResponses {
 	public static final byte	OK					= 1;
 	public static final byte	DISK_BUSY			= -4;
 	public static final byte	DISK_STARTING_UP	= -7;
+
+	public static final byte	DONE				= (byte) 0xff;
 }

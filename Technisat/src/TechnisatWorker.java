@@ -411,11 +411,11 @@ public class TechnisatWorker {
 		if(pbFlag>=0)
 			return true;
 		switch(pbFlag) {
-		case -4:
-		case -7:
+		case DISK_BUSY:
+		case DISK_STARTING_UP:
 			Logfile.Write("Device is Busy!");
 			break;
-		case (byte) 0xff:
+		case DONE:
 			return false;
 		default:
 			throw new IOException("Unknown Protocol Flag " + pbFlag);
@@ -442,7 +442,7 @@ public class TechnisatWorker {
 		commandDataStream.writeShort(poFile.getRecNo());
 		write(command.toByteArray());
 		response = readbyte();
-		if(response == 1) {
+		if(response == OK) {
 			poFile.m_oParent.m_oFiles.remove(poFile);
 		}
 		else {
