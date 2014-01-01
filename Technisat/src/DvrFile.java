@@ -63,7 +63,7 @@ public class DvrFile {
 	}
 
 	public short getRecNo() throws TechnisatException {
-		if(m_nIndex<0)
+		if(!hasRecNo())
 			throw new TechnisatException("File has no Record Number");
 		return m_nIndex;
 	}
