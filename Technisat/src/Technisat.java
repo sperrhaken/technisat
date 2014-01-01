@@ -128,7 +128,7 @@ public class Technisat {
 		}
 		
 		while(lbReadCommand) {
-			String lcPath = m_oDirectory == null ? "" : " " + m_oDirectory.GetFullPath();
+			String lcPath = m_oDirectory == null ? "" : " " + m_oDirectory.fullPath();
 			if(receiverName.equals(""))
 				System.out.print("Technisat"+lcPath+"> ");
 			else

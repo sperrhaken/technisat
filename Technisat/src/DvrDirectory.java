@@ -57,7 +57,7 @@ public class DvrDirectory {
 		return null;
 	}
 
-	public String GetFullPath() {
-		return ( m_oParent==null ? "$/" : m_oParent.GetFullPath() + m_cDisplayName + "/" );
+	public String fullPath() {
+		return ( m_oParent==null ? "$/" : m_oParent.fullPath() + m_cDisplayName + "/" );
 	}
 }
