@@ -60,7 +60,7 @@ public class Technisat {
 					if(pcDir.equals(".."))
 						m_oDirectory = m_oDirectory.m_oParent;
 					else
-						m_oDirectory = m_oDirectory.GetSubDirectory(pcDir);			
+						m_oDirectory = m_oDirectory.get_subdir(pcDir);			
 				} else {
 					System.out.println("Unknown Directory "+pcDir);
 				}

@@ -42,13 +42,13 @@ public class DvrDirectory {
 	}
 
 	public boolean is_dir(String pcDir) {
-		if (GetSubDirectory(pcDir) != null)
+		if (get_subdir(pcDir) != null)
 			return true;
 		else
 			return false;
 	}
 
-	public DvrDirectory GetSubDirectory(String pcDir) {
+	public DvrDirectory get_subdir(String pcDir) {
 		for (DvrDirectory d : m_oDirectorys) {
 			if (d.m_cDisplayName.toUpperCase().equals(pcDir.toUpperCase())) {
 				return d;
