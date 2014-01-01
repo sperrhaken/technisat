@@ -59,7 +59,7 @@ public class DvrDirectory {
 
 	public String fullPath() {
 		return ( m_oParent==null
-				 ? "$/"
+				 ? "/"
 				 : m_oParent.fullPath() + m_cDisplayName + "/" );
 	}
 }
