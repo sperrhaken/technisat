@@ -39,13 +39,6 @@ public class DvrFile {
 		return m_nIndex;
 	}
 	
-	DvrDirectory m_oParent;
-	String m_cFileName;
-	long m_nFileSize;
-	short m_nIndex;
-	byte m_nType;
-	Date m_dDate;
-	
 	public long getFileSize() {
 		return m_nFileSize;
 	}
@@ -78,4 +71,12 @@ public class DvrFile {
 	public boolean isRecNo() {
 		return m_nIndex>0;
 	}
+
+		
+	DvrDirectory m_oParent;
+	String m_cFileName;
+	long m_nFileSize;
+	short m_nIndex;
+	byte m_nType;
+	Date m_dDate;
 }
