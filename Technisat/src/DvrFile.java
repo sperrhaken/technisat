@@ -12,6 +12,7 @@ public class DvrFile {
 		m_dDate = pdDate;
 		m_oParent = poParent;
 	}
+	
 	public String toString() {
 		SimpleDateFormat loForm = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss");
 		return
@@ -21,6 +22,7 @@ public class DvrFile {
 					loForm.format(m_dDate) + " " + 
 					m_cFileName;
 	}
+	
 	public String getTypeString() {
 		switch(m_nType) {
 		case BIN:
@@ -32,9 +34,11 @@ public class DvrFile {
 		}
 		return "     ";
 	}
+	
 	public short getIndex() {
 		return m_nIndex;
 	}
+	
 	DvrDirectory m_oParent;
 	String m_cFileName;
 	long m_nFileSize;
@@ -45,6 +49,7 @@ public class DvrFile {
 	public long getFileSize() {
 		return m_nFileSize;
 	}
+	
 	public String getFileName() {
 		return m_cFileName;
 	}
@@ -63,11 +68,13 @@ public class DvrFile {
 
 		return date + " " + m_cFileName.replaceAll(replaceRegex, "");
 	}
+
 	public short getRecNo() throws TechnisatException {
 		if(m_nIndex<0)
 			throw new TechnisatException("File has no Record Number");
 		return m_nIndex;
 	}
+
 	public boolean isRecNo() {
 		return m_nIndex>0;
 	}
