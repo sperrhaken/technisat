@@ -49,16 +49,19 @@ public class DvrFile {
 		return m_cFileName;
 	}
 	
-	String[] m_aReplace = new String[]{"\\","/",":","*","?","\"","<",">","|"};
-	
 	public String getUniqueFileName() {
-		SimpleDateFormat loForm = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss");
-		String lcFileName = m_cFileName;
-		for(int i=0; i<m_aReplace.length; i++) {
-			lcFileName = lcFileName.replace(m_aReplace[i], "");
-		}
-		lcFileName = loForm.format(m_dDate) + " " + lcFileName;
-		return lcFileName;
+		final String replaceRegex =	"\\\\"	+ "|" +
+									"/"		+ "|" +
+									":"		+ "|" +
+									"\\*"	+ "|" +
+									"\\?"	+ "|" +
+									"\""	+ "|" +
+									"<"		+ "|" +
+									">"		+ "|" +
+									"\\|";
+		String date = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss").format(m_dDate);
+
+		return date + " " + m_cFileName.replaceAll(replaceRegex, "");
 	}
 	public short getRecNo() throws TechnisatException {
 		if(m_nIndex<0)
