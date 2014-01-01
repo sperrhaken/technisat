@@ -69,6 +69,12 @@ public class DvrFile {
 	}
 
 	public boolean hasRecNo() {
+		/* FIXME
+		 *
+		 * getRecNo used m_nIndex<0 to test for the non-existent of
+		 * rec-number, here m_Index>0 is used to test for one.  Does
+		 * m_nIndex==0 constitude a valid rec-number?
+		 */
 		return m_nIndex>0;
 	}
 
